@@ -3,35 +3,6 @@ import { FaWhatsapp } from "react-icons/fa";
 
 function ContactPage() {
 
-   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message }),
-      });
-
-      if (!res.ok) throw new Error("Failed");
-
-      alert("Message sent successfully!");
-      setName("");
-      setEmail("");
-      setMessage("");
-    } catch (err) {
-      alert("Something went wrong. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="w-full min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-6xl grid md:grid-cols-2 gap-10 bg-white shadow-xl rounded-2xl p-8">
@@ -60,8 +31,6 @@ function ContactPage() {
             </label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             />
@@ -73,8 +42,6 @@ function ContactPage() {
             </label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             />
@@ -85,8 +52,6 @@ function ContactPage() {
               Message
             </label>
             <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
               rows="5"
               placeholder="Type your message..."
               className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
@@ -95,10 +60,9 @@ function ContactPage() {
 
           <button
             type="submit"
-            disabled={loading}
             className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
           >
-            {loading ? "Sending..." : "Send Message"}
+            Send Message
           </button>
           <a
               href="https://wa.me/27765602702"
