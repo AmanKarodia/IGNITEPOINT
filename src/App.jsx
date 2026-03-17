@@ -1,5 +1,6 @@
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
 import Navbar from './components/Navbar';
@@ -17,6 +18,7 @@ function App() {
         <Route path="/Enquiry" element={<EnquiryPage />} />
         <Route path="/Contact" element={<ContactPage />} />
       </Routes>
+      <Analytics />
     </Router>
   );
 }
