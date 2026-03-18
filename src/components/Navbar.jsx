@@ -10,7 +10,7 @@ const Navbar = () => {
 
   return (
     <nav className="relative z-20 py-5 bg-white shadow-md">
-      <div className="container px-4 mx-auto flex items-center justify-between">
+      <div className="container px-3 mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
           <img className="h-28 w-28 mr-2" src={logo} onClick={NavHome} alt="Logo" />
