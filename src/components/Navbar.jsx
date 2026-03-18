@@ -4,20 +4,24 @@ import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const NavHome = () => {
+    window.location.href = "/";
+  }
 
   return (
     <nav className="relative z-20 py-5 bg-white shadow-md">
       <div className="container px-4 mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <img className="h-28 w-28 mr-2" src={logo} alt="Logo" />
+          <img className="h-28 w-28 mr-2" src={logo} onClick={NavHome} alt="Logo" />
         </div>
 
         {/* Desktop Nav Items */}
-        <div className="hidden md:flex flex-grow justify-end space-x-5">
+        <div className="hidden md:flex flex-grow justify-center space-x-5">
           <Link to="/" className=" transition">Home</Link>
           <Link to="/Contact" className=" transition">Contact</Link>
           <Link to="/Courses" className=" transition">Courses</Link>
+          <Link to="/Gallary" className=" transition">Gallary</Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -38,6 +42,7 @@ const Navbar = () => {
           <Link to="/" className=" transition">Home</Link>
           <Link to="/Courses" className=" transition">Courses</Link>
           <Link to="/Contact" className=" transition">Contact</Link>
+          <Link to="/Gallary" className=" transition">Gallary</Link>
         </div>
       )}
     </nav>

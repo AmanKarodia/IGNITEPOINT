@@ -5,7 +5,7 @@ function AboutUs() {
 
   const handleApplyClick = () => {
     // Navigate to the enquiry page
-    window.location.href = "/Courses";
+    window.location.href = "/Apply";
   }
 
   return (

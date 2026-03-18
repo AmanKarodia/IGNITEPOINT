@@ -83,6 +83,6 @@ export const resourcesLinks = [
 ];
 
 export const communityLinks = [
-  { href: "#", text: "Contact" },
+  { href: "/Contact", text: "Contact" },
   { href: "#", text: "Legal" },
 ];
