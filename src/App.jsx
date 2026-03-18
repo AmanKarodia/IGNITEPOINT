@@ -1,5 +1,6 @@
 import './App.css'
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
@@ -22,6 +23,7 @@ function App() {
         <Route path="/Contact" element={<ContactPage />} />
         <Route path="/Courses" element={<CoursePage />} />
       </Routes>
+      <SpeedInsights />
     </Router>
   );
 }
