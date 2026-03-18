@@ -2,6 +2,12 @@ import React from "react";
 import IMG_20260303_160657 from "../assets/IMG_20260303_160657.jpeg";
 
 function AboutUs() {
+
+  const handleApplyClick = () => {
+    // Navigate to the enquiry page
+    window.location.href = "/Courses";
+  }
+
   return (
     <section className="relative w-full">
       <div className="bg-white px-10 py-10 w-full flex flex-col md:flex-row items-center gap-6 space-x-2">
@@ -15,7 +21,7 @@ function AboutUs() {
             Our goal is to provide a welcoming, affordable space where anyone can learn essential computer skills and gain the confidence to participate fully in the digital world. 
             Ignite Point is about more than computers — it’s about opening doors to opportunity and a better future.
           </p>
-          <button className="mt-10 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          <button onClick={handleApplyClick} className="mt-10 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
             Apply Now
           </button>
         </div>

@@ -2,6 +2,12 @@ import React from "react";
 import IMG_20260303_160724 from "../assets/IMG_20260303_160724.jpeg";
 
 function OurVision() {
+
+  const handleApplyClick = () => {
+    // Navigate to the enquiry page
+    window.location.href = "/Courses";
+  }
+
   return (
     <section className="relative w-full">
       <div className="bg-white px-10 py-10 w-full flex flex-col md:flex-row items-center gap-6 space-x-2">
@@ -28,7 +34,7 @@ function OurVision() {
             create an environment where individuals and businesses can harness the full pot
             ential of modern computing.
           </p>
-          <button className="mt-10 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          <button onClick={handleApplyClick} className="mt-10 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
             Apply Now
           </button>
         </div>

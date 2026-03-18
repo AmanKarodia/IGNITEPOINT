@@ -17,7 +17,7 @@ const Navbar = () => {
         <div className="hidden md:flex flex-grow justify-end space-x-5">
           <Link to="/" className=" transition">Home</Link>
           <Link to="/Contact" className=" transition">Contact</Link>
-          <Link to="/courses" className=" transition">Courses</Link>
+          <Link to="/Courses" className=" transition">Courses</Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -36,8 +36,8 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden shadow-md text-center font-bold p-4 flex flex-col space-y-1">
           <Link to="/" className=" transition">Home</Link>
-          <Link to="/Courses" className=" transition">Course</Link>
-          <Link to="/Contact" className=" transition">Contact Us</Link>
+          <Link to="/Courses" className=" transition">Courses</Link>
+          <Link to="/Contact" className=" transition">Contact</Link>
         </div>
       )}
     </nav>

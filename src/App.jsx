@@ -7,7 +7,9 @@ import OurVision from './components/OurVision';
 import AboutUs from './components/AboutUs';
 import ClassroomRef from './components/ClassroomRef';
 import Contact from './Pages/Contact';
-import ApplyForm from './Pages/ApplyForm';
+import Courses from './Pages/Courses';
+import WhyUs from './components/whyUs';
+import CourseCat from './components/CourseCat';
 
 function App() {
   return (
@@ -16,6 +18,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/Enquiry" element={<EnquiryPage />} />
         <Route path="/Contact" element={<ContactPage />} />
+        <Route path="/Courses" element={<CoursePage />} />
       </Routes>
     </Router>
   );
@@ -25,6 +28,7 @@ export const LandingPage = () => (
   <>
     <Navbar />
     <Hero />
+    <WhyUs />
     <OurVision />
     <AboutUs />
     <ClassroomRef />
@@ -44,8 +48,16 @@ export const EnquiryPage = () => (
 export const ContactPage = () => (
   <>
     <Navbar />
-    <Hero />
     <Contact />
+    <Footer />
+  </>
+);
+
+export const CoursePage = () => (
+  <>
+    <Navbar />
+    <Courses />
+    <CourseCat />
     <Footer />
   </>
 );

@@ -1,4 +1,4 @@
-import { Import, icons, Facebook } from 'lucide-react';
+import { Facebook } from 'lucide-react';
 
 // export const catalog = [
 //   {
@@ -74,7 +74,6 @@ import { Import, icons, Facebook } from 'lucide-react';
 //       "Quick production and delivery for small or large batches without compromising quality.",
 //   },
 // ];
-
 
 export const resourcesLinks = [
   {
