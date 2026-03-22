@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import jsPDF from "jspdf";
 
 function Apply() {
   const [formData, setFormData] = useState({
@@ -15,7 +16,6 @@ function Apply() {
   });
 
   const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
 
   const locations = [
     "MGANDUZWENI",
@@ -38,21 +38,20 @@ function Apply() {
       case "name":
       case "address":
       case "nextOfKin":
-        if (!value.trim()) return "This field is required";
+        if (!value.trim()) return "Required";
         break;
       case "idNumber":
-        if (!/^\d{13}$/.test(value)) return "ID Number must be 13 digits";
+        if (!/^\d{13}$/.test(value)) return "ID must be 13 digits";
         break;
       case "phone":
-        if (!/^(\+27|0)\d{9}$/.test(value))
-          return "Phone number must start with +27 or 0 and have 9 digits";
+        if (!/^(\+27|0)\d{9}$/.test(value)) return "Invalid phone number";
         break;
       case "location":
-        if (!value) return "Please select a location";
+        if (!value) return "Select a location";
         break;
       case "otherLocation":
         if (formData.location === "OTHER" && !value.trim())
-          return "Please specify your location";
+          return "Specify your location";
         break;
       default:
         return "";
@@ -69,103 +68,198 @@ function Apply() {
     }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
-    const error = validateField(name, value);
-    setErrors((prev) => ({ ...prev, [name]: error }));
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
+
+  const generatePDF = async (finalLocation) => {
+  const pdf = new jsPDF();
+  let y = 20;
+
+  // 🔹 Load logo
+  const loadImage = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+
+  // 🔹 Logo (if exists)
+  try {
+    const logo = await fetch("/src/assets/logo.png")
+      .then((res) => res.blob())
+      .then(loadImage);
+    pdf.addImage(logo, "PNG", 14, 10, 30, 15);
+  } catch {}
+
+  // 🔹 Title
+  pdf.setFontSize(16);
+  pdf.text("APPLICATION FORM", 105, 18, { align: "center" });
+
+  const appNumber = `APP-${new Date().getFullYear()}-${Math.floor(
+    1000 + Math.random() * 9000
+  )}`;
+
+  pdf.setFontSize(10);
+  pdf.text(`Application No: ${appNumber}`, 14, 32);
+  pdf.text(`Date: ${new Date().toLocaleDateString()}`, 150, 32);
+
+  y = 42;
+  pdf.setFontSize(11);
+
+  const addLine = (label, value) => {
+    pdf.text(`${label}:`, 14, y);
+    pdf.text(String(value || "N/A"), 60, y);
+    y += 7;
+  };
+
+  addLine("Full Name", formData.name);
+  addLine("ID Number", formData.idNumber);
+  addLine("Phone", formData.phone);
+  addLine("Location", finalLocation);
+  addLine("Address", formData.address);
+  addLine("Disability", formData.disability);
+  addLine("Next of Kin", formData.nextOfKin);
+
+  y += 5;
+  pdf.text("BANK DETAILS", 14, y);
+  y += 7;
+  addLine("Bank", "Capitec Business");
+  addLine("Account Number", "1052131490");
+  addLine("Reference", "Your Name & Surname");
+
+  // 🔹 Attachments
+  y += 10;
+  pdf.text("ATTACHMENTS", 14, y);
+  y += 8;
+
+  if (formData.idCopy?.type.startsWith("image/")) {
+    const idImg = await loadImage(formData.idCopy);
+    pdf.text("ID Copy:", 14, y);
+    y += 5;
+    pdf.addImage(idImg, "JPEG", 14, y, 80, 60);
+    y += 65;
+  } else {
+    addLine("ID Copy File", formData.idCopy?.name);
+  }
+
+  if (formData.proofOfPayment?.type.startsWith("image/")) {
+    const popImg = await loadImage(formData.proofOfPayment);
+    pdf.text("Proof of Payment:", 14, y);
+    y += 5;
+    pdf.addImage(popImg, "JPEG", 14, y, 80, 60);
+    y += 65;
+  } else {
+    addLine("Proof File", formData.proofOfPayment?.name);
+  }
+
+  y += 10;
+  pdf.setFontSize(9);
+  pdf.text(
+    "I declare that the information provided is true and correct.",
+    14,
+    y
+  );
+
+  pdf.save(`${appNumber}_${formData.name.replace(/\s+/g, "_")}.pdf`);
+};
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const newErrors = {};
     Object.keys(formData).forEach((key) => {
-      const error = validateField(key, formData[key]);
-      if (error) newErrors[key] = error;
+      const err = validateField(key, formData[key]);
+      if (err) newErrors[key] = err;
     });
 
-    if (!formData.idCopy) newErrors.idCopy = "ID copy is required";
-    if (!formData.proofOfPayment)
-      newErrors.proofOfPayment = "Proof of payment is required";
+    if (!formData.idCopy) newErrors.idCopy = "Required";
+    if (!formData.proofOfPayment) newErrors.proofOfPayment = "Required";
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      setSubmitted(true);
-
       const finalLocation =
         formData.location === "OTHER"
           ? formData.otherLocation
           : formData.location;
 
-      const message = `
-APPLICATION FORM SUBMISSION
+      generatePDF(finalLocation);
 
-Name: ${formData.name}
-ID Number: ${formData.idNumber}
-Phone: ${formData.phone}
-Location: ${finalLocation}
-Address: ${formData.address}
-Disability: ${formData.disability || "N/A"}
-Next of Kin: ${formData.nextOfKin}
+      const whatsappMessage = encodeURIComponent(
+        `Hello, I have submitted my application.
 
-ATTACHMENTS TO SEND:
-• ID Copy: ${formData.idCopy.name}
-• Proof of Payment: ${formData.proofOfPayment.name}
+Please find the generated PDF application attached.
 
-Bank Details Used:
-Account Name: BLAUQTRADING
-Bank: Standard Bank
-Account Number: 000000000
-Branch Code: 051001
-Reference: Your Name & Surname
-`;
+Thank you.`
+      );
 
-      const whatsappUrl = `https://wa.me/27765602702?text=${encodeURIComponent(
-        message
-      )}`;
-
-      window.open(whatsappUrl, "_blank");
-    } else {
-      setSubmitted(false);
+      window.open(
+        `https://wa.me/27765602702?text=${whatsappMessage}`,
+        "_blank"
+      );
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px" }}>
-      <div style={{ maxWidth: "600px", width: "100%", background: "#fff", borderRadius: "12px", padding: "30px", boxShadow: "0 6px 24px rgba(0,0,0,0.1)" }}>
-        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Application Form</h2>
+    <div style={{ minHeight: "100vh", background: "#f4f6f8", padding: "20px" }}>
+      <div style={{ maxWidth: "600px", margin: "auto", background: "#fff", padding: "30px", borderRadius: "12px" }}>
+        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+          Application Form
+        </h2>
 
         {/* Bank Details */}
-        <div style={{ background: "#f9fafb", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
-          <strong>Bank Details</strong>
-          <p>Account Name: BLAUQTRADING</p>
-          <p>Bank: Standard Bank</p>
-          <p>Account Number: 000000000</p>
-          <p>Branch Code: 051001</p>
-          <p><strong>Reference:</strong> Your Name & Surname</p>
-        </div>
+<div
+  style={{
+    background: "#f0fdf4",
+    border: "1px solid #bbf7d0",
+    padding: "18px",
+    borderRadius: "10px",
+    marginBottom: "25px",
+  }}
+>
+  <h3 style={{ marginBottom: "10px", color: "#065f46" }}>
+    💳 Payment Details (Please Pay Before Submitting)
+  </h3>
 
-        <form onSubmit={handleSubmit} noValidate>
-          {[
-            { label: "Name and Surname", name: "name" },
-            { label: "ID Number", name: "idNumber" },
-            { label: "Phone Number", name: "phone" },
-            { label: "Address", name: "address", textarea: true },
-            { label: "Disability (optional)", name: "disability" },
-            { label: "Next of Kin", name: "nextOfKin" },
-          ].map((f) => (
-            <div key={f.name} style={{ marginBottom: "16px" }}>
-              <label>{f.label}</label>
-              {f.textarea ? (
-                <textarea name={f.name} onChange={handleChange} style={{ width: "100%", padding: "10px" }} />
-              ) : (
-                <input name={f.name} onChange={handleChange} style={{ width: "100%", padding: "10px" }} />
-              )}
-              {errors[f.name] && <small style={{ color: "red" }}>{errors[f.name]}</small>}
+  <div style={{ fontSize: "14px", lineHeight: "1.6", color: "#064e3b" }}>
+    <p><strong>Bank:</strong> Capitec Business Account</p>
+    <p><strong>Account Type:</strong> Transact</p>
+    <p><strong>Account Number:</strong> 1052131490</p>
+    <p><strong>SWIFT Code:</strong> CABLZAJJ</p>
+    <p>
+      <strong>Reference:</strong>{" "}
+      <span style={{ fontWeight: "600", color: "#166534" }}>
+        Your Name & Surname
+      </span>
+    </p>
+  </div>
+
+  <p
+    style={{
+      marginTop: "12px",
+      fontSize: "13px",
+      color: "#065f46",
+      fontStyle: "italic",
+    }}
+  >
+    ⚠️ Use your <strong>full name</strong> as reference and upload proof of
+    payment below.
+  </p>
+</div>
+
+        <form onSubmit={handleSubmit}>
+          {["name", "idNumber", "phone", "address", "disability", "nextOfKin"].map((f) => (
+            <div key={f} style={{ marginBottom: "14px" }}>
+              <input
+                name={f}
+                placeholder={f.replace(/([A-Z])/g, " $1")}
+                onChange={handleChange}
+                style={{ width: "100%", padding: "10px" }}
+              />
+              {errors[f] && <small style={{ color: "red" }}>{errors[f]}</small>}
             </div>
           ))}
 
-          {/* Location */}
-          <label>Location</label>
           <select name="location" onChange={handleChange} style={{ width: "100%", padding: "10px" }}>
             <option value="">Select location</option>
             {locations.map((l) => (
@@ -182,33 +276,30 @@ Reference: Your Name & Surname
             />
           )}
 
-          {/* File uploads */}
-          <div style={{ marginTop: "16px" }}>
-            <label>ID Copy (Photo/PDF)</label>
-            <input type="file" name="idCopy" accept="image/*,.pdf" onChange={handleChange} />
-            {errors.idCopy && <small style={{ color: "red" }}>{errors.idCopy}</small>}
+          <div style={{ marginTop: "15px" }}>
+            <label>ID Copy</label>
+            <input type="file" name="idCopy" onChange={handleChange} />
           </div>
 
-          <div style={{ marginTop: "16px" }}>
+          <div style={{ marginTop: "15px" }}>
             <label>Proof of Payment</label>
-            <input type="file" name="proofOfPayment" accept="image/*,.pdf" onChange={handleChange} />
-            {errors.proofOfPayment && <small style={{ color: "red" }}>{errors.proofOfPayment}</small>}
+            <input type="file" name="proofOfPayment" onChange={handleChange} />
           </div>
 
           <button
             type="submit"
             style={{
-              width: "100%",
               marginTop: "20px",
+              width: "100%",
               padding: "14px",
               background: "#25D366",
               color: "#fff",
-              border: "none",
               borderRadius: "8px",
+              border: "none",
               fontWeight: "600",
             }}
           >
-            Submit via WhatsApp
+            Send via WhatsApp
           </button>
         </form>
       </div>
