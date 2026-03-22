@@ -10,14 +10,14 @@ const Navbar = () => {
 
   return (
     <nav className="relative z-20 py-5 bg-white shadow-md">
-      <div className="container px-3 mx-auto flex items-center justify-between">
+      <div className="container px-10 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
           <img className="h-28 w-28 mr-2" src={logo} onClick={NavHome} alt="Logo" />
         </div>
 
         {/* Desktop Nav Items */}
-        <div className="hidden md:flex flex-grow justify-center space-x-5">
+        <div className="hidden md:flex flex-grow justify-center space-x-3">
           <Link to="/" className=" transition">Home</Link>
           <Link to="/Contact" className=" transition">Contact</Link>
           <Link to="/Courses" className=" transition">Courses</Link>
