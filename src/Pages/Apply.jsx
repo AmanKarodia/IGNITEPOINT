@@ -6,9 +6,12 @@ function Apply() {
     idNumber: "",
     phone: "",
     location: "",
+    otherLocation: "",
     address: "",
     disability: "",
     nextOfKin: "",
+    idCopy: null,
+    proofOfPayment: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -27,6 +30,7 @@ function Apply() {
     "JERUSALEM",
     "SALUBINDZA",
     "KAMAJIKA",
+    "OTHER",
   ];
 
   const validateField = (name, value) => {
@@ -44,7 +48,11 @@ function Apply() {
           return "Phone number must start with +27 or 0 and have 9 digits";
         break;
       case "location":
-        if (!value) return "Please select a province";
+        if (!value) return "Please select a location";
+        break;
+      case "otherLocation":
+        if (formData.location === "OTHER" && !value.trim())
+          return "Please specify your location";
         break;
       default:
         return "";
@@ -53,9 +61,14 @@ function Apply() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target;
 
+    if (files) {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
     const error = validateField(name, value);
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
@@ -68,27 +81,48 @@ function Apply() {
       const error = validateField(key, formData[key]);
       if (error) newErrors[key] = error;
     });
+
+    if (!formData.idCopy) newErrors.idCopy = "ID copy is required";
+    if (!formData.proofOfPayment)
+      newErrors.proofOfPayment = "Proof of payment is required";
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
       setSubmitted(true);
 
-      // Create WhatsApp message
+      const finalLocation =
+        formData.location === "OTHER"
+          ? formData.otherLocation
+          : formData.location;
+
       const message = `
-Application Form Submission:
+APPLICATION FORM SUBMISSION
+
 Name: ${formData.name}
 ID Number: ${formData.idNumber}
 Phone: ${formData.phone}
-Location: ${formData.location}
+Location: ${finalLocation}
 Address: ${formData.address}
 Disability: ${formData.disability || "N/A"}
 Next of Kin: ${formData.nextOfKin}
-      `;
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappNumber = "+27765602702"; // Replace with your number including country code, e.g., 27821234567
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
-      // Open WhatsApp
+ATTACHMENTS TO SEND:
+• ID Copy: ${formData.idCopy.name}
+• Proof of Payment: ${formData.proofOfPayment.name}
+
+Bank Details Used:
+Account Name: BLAUQTRADING
+Bank: Standard Bank
+Account Number: 000000000
+Branch Code: 051001
+Reference: Your Name & Surname
+`;
+
+      const whatsappUrl = `https://wa.me/27765602702?text=${encodeURIComponent(
+        message
+      )}`;
+
       window.open(whatsappUrl, "_blank");
     } else {
       setSubmitted(false);
@@ -96,95 +130,85 @@ Next of Kin: ${formData.nextOfKin}
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f4f6f8", padding: "20px" }}>
-      <div style={{ maxWidth: "600px", width: "100%", background: "#fff", borderRadius: "12px", padding: "30px", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
-        <h2 style={{ textAlign: "center", marginBottom: "25px", color: "#333" }}>Application Form</h2>
-        {submitted && <div style={{ marginBottom: "20px", color: "green", fontWeight: "600" }}>Redirecting to WhatsApp...</div>}
+    <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f4f6f8", padding: "20px" }}>
+      <div style={{ maxWidth: "600px", width: "100%", background: "#fff", borderRadius: "12px", padding: "30px", boxShadow: "0 6px 24px rgba(0,0,0,0.1)" }}>
+        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Application Form</h2>
+
+        {/* Bank Details */}
+        <div style={{ background: "#f9fafb", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
+          <strong>Bank Details</strong>
+          <p>Account Name: BLAUQTRADING</p>
+          <p>Bank: Standard Bank</p>
+          <p>Account Number: 000000000</p>
+          <p>Branch Code: 051001</p>
+          <p><strong>Reference:</strong> Your Name & Surname</p>
+        </div>
+
         <form onSubmit={handleSubmit} noValidate>
           {[
-            { label: "Name and Surname", name: "name", type: "text", placeholder: "John Doe" },
-            { label: "ID Number", name: "idNumber", type: "text", placeholder: "1234567890123" },
-            { label: "Phone Number", name: "phone", type: "tel", placeholder: "+27 82 123 4567" },
-            { label: "Address", name: "address", type: "textarea", placeholder: "Street, Suburb, City" },
-            { label: "Disability (if any)", name: "disability", type: "text", placeholder: "Specify if applicable", optional: true },
-            { label: "Next of Kin", name: "nextOfKin", type: "text", placeholder: "Full Name and Contact" },
-          ].map((field) => (
-            <div key={field.name} style={{ marginBottom: "18px" }}>
-              <label style={{ display: "block", marginBottom: "6px", color: "#555", fontWeight: "500" }}>
-                {field.label}{!field.optional && ":"}
-              </label>
-              {field.type === "textarea" ? (
-                <textarea
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  placeholder={field.placeholder}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: errors[field.name] ? "1px solid red" : "1px solid #ccc",
-                    fontSize: "14px",
-                  }}
-                />
+            { label: "Name and Surname", name: "name" },
+            { label: "ID Number", name: "idNumber" },
+            { label: "Phone Number", name: "phone" },
+            { label: "Address", name: "address", textarea: true },
+            { label: "Disability (optional)", name: "disability" },
+            { label: "Next of Kin", name: "nextOfKin" },
+          ].map((f) => (
+            <div key={f.name} style={{ marginBottom: "16px" }}>
+              <label>{f.label}</label>
+              {f.textarea ? (
+                <textarea name={f.name} onChange={handleChange} style={{ width: "100%", padding: "10px" }} />
               ) : (
-                <input
-                  type={field.type}
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  placeholder={field.placeholder}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: errors[field.name] ? "1px solid red" : "1px solid #ccc",
-                    fontSize: "14px",
-                  }}
-                />
+                <input name={f.name} onChange={handleChange} style={{ width: "100%", padding: "10px" }} />
               )}
-              {errors[field.name] && <div style={{ color: "red", fontSize: "13px", marginTop: "4px" }}>{errors[field.name]}</div>}
+              {errors[f.name] && <small style={{ color: "red" }}>{errors[f.name]}</small>}
             </div>
           ))}
 
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "6px", color: "#555", fontWeight: "500" }}>Location (Province):</label>
-            <select
-              name="location"
-              value={formData.location}
+          {/* Location */}
+          <label>Location</label>
+          <select name="location" onChange={handleChange} style={{ width: "100%", padding: "10px" }}>
+            <option value="">Select location</option>
+            {locations.map((l) => (
+              <option key={l}>{l}</option>
+            ))}
+          </select>
+
+          {formData.location === "OTHER" && (
+            <input
+              name="otherLocation"
+              placeholder="Enter your location"
               onChange={handleChange}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "8px",
-                border: errors.location ? "1px solid red" : "1px solid #ccc",
-                fontSize: "14px",
-              }}
-            >
-              <option value="">Select a province</option>
-              {locations.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </select>
-            {errors.location && <div style={{ color: "red", fontSize: "13px", marginTop: "4px" }}>{errors.location}</div>}
+              style={{ width: "100%", padding: "10px", marginTop: "10px" }}
+            />
+          )}
+
+          {/* File uploads */}
+          <div style={{ marginTop: "16px" }}>
+            <label>ID Copy (Photo/PDF)</label>
+            <input type="file" name="idCopy" accept="image/*,.pdf" onChange={handleChange} />
+            {errors.idCopy && <small style={{ color: "red" }}>{errors.idCopy}</small>}
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <label>Proof of Payment</label>
+            <input type="file" name="proofOfPayment" accept="image/*,.pdf" onChange={handleChange} />
+            {errors.proofOfPayment && <small style={{ color: "red" }}>{errors.proofOfPayment}</small>}
           </div>
 
           <button
             type="submit"
             style={{
               width: "100%",
+              marginTop: "20px",
               padding: "14px",
-              backgroundColor: "#25D366",
+              background: "#25D366",
               color: "#fff",
-              fontWeight: "600",
               border: "none",
               borderRadius: "8px",
-              cursor: "pointer",
+              fontWeight: "600",
             }}
           >
-            Submit to WhatsApp
+            Submit via WhatsApp
           </button>
         </form>
       </div>
